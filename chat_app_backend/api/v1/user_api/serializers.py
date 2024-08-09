@@ -1,14 +1,19 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import ChatMessage, Profile, Interest
+from user.models import ChatMessage, Profile, Interest
 
 User = get_user_model()
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['id', 'full_name', 'image']
 class UserSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer(read_only=True)  
     class Meta:
         model = User
-        fields = ('id', 'email', 'username')
+        fields = ('id', 'email', 'username', 'profile')
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -28,11 +33,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ['id', 'user', 'full_name', 'image']
 
 class InterestSerializer(serializers.ModelSerializer):
     sender_profile = ProfileSerializer(read_only=True)

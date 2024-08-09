@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import api_view
-from .models import ChatMessage, Interest, Profile
+from user.models import ChatMessage, Interest, Profile
 from .serializers import ChatMessageSerializer, InterestSerializer, ProfileSerializer, RegisterSerializer, UserSerializer
 
 User = get_user_model()
@@ -19,11 +19,11 @@ def getRoutes(request):
         '/api/v1/user/register/',
         '/api/v1/user/token/refresh/',
         '/api/v1/user/users/',
-        '/api/v1/interests/',
-        '/api/v1/interests/<int:pk>/accept/',
-        '/api/v1/interests/<int:pk>/reject/',
-        '/api/v1/chat/messages/',
-        '/api/v1/chat/messages/<int:user_id>/',
+        '/api/v1//user/interests/',
+        '/api/v1//user/interests/<int:pk>/accept/',
+        '/api/v1//user/interests/<int:pk>/reject/',
+        '/api/v1//user/chat/messages/',
+        '/api/v1//user/chat/messages/<int:user_id>/',
     ]
     return Response(routes)
 
@@ -42,6 +42,13 @@ class MyTokenObtainPairView(TokenObtainPairView):
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.profile
 
 # User List View
 class UserListView(generics.ListAPIView):
