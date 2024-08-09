@@ -20,7 +20,10 @@ const Login = ({ setToken }) => {
         e.preventDefault();
         try {
         const response = await axios.post("http://127.0.0.1:8000/api/v1/user/token/", formData);  // Fix the endpoint path
-        setToken(response.data.access);
+         // Save the token in the app state and localStorage
+        const accessToken = response.data.access;
+        setToken(accessToken);
+        localStorage.setItem("token", accessToken); // Save token in localStorage
         localStorage.setItem("refresh", response.data.refresh);
         navigate("/users");  // Use navigate instead of history.push
         } catch (error) {

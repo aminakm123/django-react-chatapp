@@ -2,15 +2,12 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import api_view
-
-from user.models import Profile
-from .serializers import ProfileSerializer, RegisterSerializer, UserSerializer
+from .models import ChatMessage, Interest, Profile
+from .serializers import ChatMessageSerializer, InterestSerializer, ProfileSerializer, RegisterSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -22,6 +19,11 @@ def getRoutes(request):
         '/api/v1/user/register/',
         '/api/v1/user/token/refresh/',
         '/api/v1/user/users/',
+        '/api/v1/interests/',
+        '/api/v1/interests/<int:pk>/accept/',
+        '/api/v1/interests/<int:pk>/reject/',
+        '/api/v1/chat/messages/',
+        '/api/v1/chat/messages/<int:user_id>/',
     ]
     return Response(routes)
 
@@ -47,27 +49,60 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-class ProfileDetail(generics.RetrieveUpdateAPIView):
-    serializer_class = ProfileSerializer
-    queryset = Profile.objects.all()
-    permission_classes = [IsAuthenticated]  
+# Interest List/Create View
+class InterestListView(generics.ListCreateAPIView):
+    serializer_class = InterestSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        return Interest.objects.filter(sender=user) | Interest.objects.filter(recipient=user)
 
-class SearchUser(generics.ListAPIView):
-    serializer_class = ProfileSerializer
-    queryset = Profile.objects.all()
-    permission_classes = [IsAuthenticated]  
+    def perform_create(self, serializer):
+        recipient_email = self.request.data.get('recipient_email')
+        recipient = User.objects.get(email=recipient_email)
+        serializer.save(sender=self.request.user, recipient=recipient)
 
-    def list(self, request, *args, **kwargs):
-        username = self.kwargs['username']
-        logged_in_user = self.request.user
-        users = Profile.objects.filter(Q(user__username__icontains=username) | Q(full_name__icontains=username) | Q(user__email__icontains=username) & ~Q(user=logged_in_user))
+# Accept/Reject Interest Views
+class AcceptInterestView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        if not users.exists():
-            return Response(
-                {"detail": "No users found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def post(self, request, pk):
+        interest = Interest.objects.get(pk=pk, recipient=request.user)
+        interest.status = 'accepted'
+        interest.save()
+        return Response({'status': 'Interest accepted'})
 
-        serializer = self.get_serializer(users, many=True)
-        return Response(serializer.data)
+class RejectInterestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        interest = Interest.objects.get(pk=pk, recipient=request.user)
+        interest.status = 'rejected'
+        interest.save()
+        return Response({'status': 'Interest rejected'})
+
+# Chat Message List/Create View
+class ChatMessageListView(generics.ListCreateAPIView):
+    serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return ChatMessage.objects.filter(sender=user) | ChatMessage.objects.filter(recipient=user)
+
+    def perform_create(self, serializer):
+        recipient_email = self.request.data.get('recipient_email')
+        recipient = User.objects.get(email=recipient_email)
+        serializer.save(sender=self.request.user, recipient=recipient)
+
+# Retrieve Chat Messages for Specific User
+class ChatWithUserView(generics.ListAPIView):
+    serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        recipient_id = self.kwargs['recipient_id']
+        recipient = User.objects.get(id=recipient_id)
+        return ChatMessage.objects.filter(sender=user, recipient=recipient) | ChatMessage.objects.filter(sender=recipient, recipient=user)
