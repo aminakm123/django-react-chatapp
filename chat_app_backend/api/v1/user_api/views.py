@@ -14,6 +14,17 @@ from .serializers import ProfileSerializer, RegisterSerializer, UserSerializer
 
 User = get_user_model()
 
+# Get All Routes
+@api_view(['GET'])
+def getRoutes(request):
+    routes = [
+        '/api/v1/user/token/',
+        '/api/v1/user/register/',
+        '/api/v1/user/token/refresh/',
+        '/api/v1/user/users/',
+    ]
+    return Response(routes)
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -24,19 +35,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-
-# Get All Routes
-
-@api_view(['GET'])
-def getRoutes(request):
-    routes = [
-        '/api/v1/token/',
-        '/api/v1/register/',
-        '/api/v1/token/refresh/',
-        '/api/v1/users/',
-    ]
-    return Response(routes)
-
 
 # User Registration View
 class RegisterView(generics.CreateAPIView):
