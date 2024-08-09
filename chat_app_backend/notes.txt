@@ -1,0 +1,18 @@
+chat_app_backend/
+├── chat/                   # chat application
+│   ├── consumers.py        # WebSocket consumers
+│   ├── routing.py          # WebSocket URL routing
+│   ├── models.py           # Chat models (if needed)
+│   ├── views.py            # REST API views for chat
+│   ├── serializers.py      # Serializers for chat
+│   ├── ...
+├── user/                   # user application
+│   ├── models.py           # User and Profile models
+│   ├── views.py            # REST API views for user management
+│   ├── serializers.py      # User and Profile serializers
+│   ├── ...
+├── chat_app_backend/
+│   ├── settings.py         # Django settings
+│   ├── urls.py             # Main URL routing
+│   ├── asgi.py             # ASGI configuration
+│   ├── ...
