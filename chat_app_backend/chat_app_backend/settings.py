@@ -154,14 +154,10 @@ SIMPLE_JWT = {
 ASGI_APPLICATION = 'chat_app_backend.asgi.application'
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
-
-CHANNELS_WS_PROTOCOLS = ["websocket"]
+# CHANNELS_WS_PROTOCOLS = ["websocket"]
 
 # CORS configuration
 CORS_ALLOWED_ORIGINS = [

@@ -50,4 +50,16 @@
   .register-form button:hover {
     background-color: #0056b3; /* Darker blue on hover */
   }
+  .login-link {
+    margin-top: 20px;
+    text-align: center;
+  }
   
+  .login-link a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .login-link a:hover {
+    text-decoration: underline;
+  }

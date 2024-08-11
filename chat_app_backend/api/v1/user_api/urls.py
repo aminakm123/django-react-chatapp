@@ -1,10 +1,12 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from . import views
-from .views import AcceptInterestView, ChatMessageListView, ChatWithUserView, InterestListView, ProfileView, RegisterView, RejectInterestView, UserListView, MyTokenObtainPairView
+from .views import AcceptInterestView, ChatMessageListView, ChatWithUserView, InterestViewSet, ProfileView, RegisterView, RejectInterestView, UserListView, MyTokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 app_name = 'user_api'
+
 
 urlpatterns = [
     path('', views.getRoutes),
@@ -13,8 +15,9 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('users/', UserListView.as_view(), name='user-list'),
 
-    path('profile/', ProfileView.as_view(), name='profile'),  # Add this line
-    path('interests/', InterestListView.as_view(), name='interest_list'),
+    path('profile/', ProfileView.as_view(), name='profile'),  
+    path('interests/', InterestViewSet.as_view({'post': 'create'}), name='interest_list'),
+
     path('interests/<int:pk>/accept/', AcceptInterestView.as_view(), name='interest_accept'),
     path('interests/<int:pk>/reject/', RejectInterestView.as_view(), name='interest_reject'),
     path('chat/messages/', ChatMessageListView.as_view(), name='chat_message_list'),

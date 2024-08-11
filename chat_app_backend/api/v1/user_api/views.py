@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions,viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -8,6 +8,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import api_view
 from user.models import ChatMessage, Interest, Profile
 from .serializers import ChatMessageSerializer, InterestSerializer, ProfileSerializer, RegisterSerializer, UserSerializer
+from api.v1.user_api import serializers
+from rest_framework import status
 
 User = get_user_model()
 
@@ -57,17 +59,29 @@ class UserListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
 # Interest List/Create View
-class InterestListView(generics.ListCreateAPIView):
+class InterestViewSet(viewsets.ModelViewSet):
+    queryset = Interest.objects.all()
     serializer_class = InterestSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        return Interest.objects.filter(sender=user) | Interest.objects.filter(recipient=user)
+        return Interest.objects.filter(sender=user)
 
     def perform_create(self, serializer):
+        # Ensure the recipient exists and is not the sender
         recipient_email = self.request.data.get('recipient_email')
-        recipient = User.objects.get(email=recipient_email)
+        if not recipient_email:
+            return Response({"detail": "Recipient email is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            recipient = User.objects.get(email=recipient_email)
+        except User.DoesNotExist:
+            return Response({"detail": "Recipient does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+        if recipient == self.request.user:
+            return Response({"detail": "Cannot send interest to yourself."}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer.save(sender=self.request.user, recipient=recipient)
 
 # Accept/Reject Interest Views

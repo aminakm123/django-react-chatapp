@@ -34,14 +34,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-class InterestSerializer(serializers.ModelSerializer):
-    sender_profile = ProfileSerializer(read_only=True)
-    recipient_profile = ProfileSerializer(read_only=True)
 
+class InterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Interest
-        fields = ('id', 'sender', 'recipient', 'status', 'sender_profile', 'recipient_profile')
-
+        fields = ['id', 'sender', 'recipient', 'status']
 class ChatMessageSerializer(serializers.ModelSerializer):
     sender_profile = ProfileSerializer(read_only=True)
     recipient_profile = ProfileSerializer(read_only=True)

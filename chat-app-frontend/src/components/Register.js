@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./Register.css"; // Import the CSS file
+import { useNavigate } from "react-router-dom"; 
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,8 @@ const Register = () => {
     password: "",
     password2: "",
   });
+
+  const navigate = useNavigate();  
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,6 +26,7 @@ const Register = () => {
       );
       console.log("Registration successful:", response.data);
       alert("Registration successful! You can now log in.");
+      navigate("/login");
     } catch (error) {
       console.error("Registration failed:", error);
       alert("Registration failed!");
@@ -75,6 +79,9 @@ const Register = () => {
             />
           </div>
           <button type="submit">Register</button>
+          <div className="login-link">
+            <p>Already registered? <a href="/login">Login</a></p>
+        </div>
         </form>
       </div>
     </div>
