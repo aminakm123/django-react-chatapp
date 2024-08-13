@@ -23,16 +23,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
-    async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+    # async def disconnect(self, close_code):
+    #     # Leave room group
+    #     await self.channel_layer.group_discard(
+    #         self.room_group_name,
+    #         self.channel_name
+    #     )
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
+        print(text_data_json,"msg ...............................")
         recipient_id = text_data_json['recipient_id']
 
         # Define recipient's room group

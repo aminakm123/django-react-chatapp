@@ -33,41 +33,34 @@ const Chat = ({ token }) => {
         websocket.onopen = () => {
             console.log("WebSocket connection established");
         };
-
+    
         websocket.onerror = (error) => {
             console.error("WebSocket error:", error);
         };
-
+    
         websocket.onmessage = (event) => {
             const message = JSON.parse(event.data);
+            console.log("Received message:", message);
             setMessages((prevMessages) => [...prevMessages, message]);
         };
-
-        websocket.onclose = () => {
-            console.log('WebSocket closed, attempting to reconnect...');
-            // Implement reconnection logic
-            setTimeout(() => {
-                const newWebSocket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${userId}/`);
-                setWs(newWebSocket);
-            }, 5000); // Retry after 5 seconds
-        };
-        
+    
         setWs(websocket);
-
+    
         // Fetch messages for the logged-in user
         const fetchMessages = async () => {
             try {
                 const response = await axios.get(`http://127.0.0.1:8000/api/v1/user/chat/messages/${userId}/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
+                console.log("Fetched messages:", response.data); 
                 setMessages(response.data);
             } catch (error) {
                 console.error("Failed to fetch messages:", error);
             }
         };
-
+    
         fetchMessages();
-
+    
         // Close the WebSocket connection when the component unmounts
         return () => {
             if (websocket) {
@@ -75,6 +68,7 @@ const Chat = ({ token }) => {
             }
         };
     }, [token, userId]);
+    
 
     const handleSendMessage = (event) => {
         event.preventDefault();
@@ -110,10 +104,11 @@ const Chat = ({ token }) => {
                 <div className="messages">
                     {messages.map((message, index) => (
                         <div key={index} className={`message ${message.sender === userId ? "sent" : "received"}`}>
-                            <strong>{message.sender}:</strong> {message.content}
+                            <strong>{message.sender}:</strong> {message.message || message.content || message.text}
                         </div>
                     ))}
                 </div>
+
                 <form className="send-message" onSubmit={handleSendMessage}>
                     <input
                         type="text"
