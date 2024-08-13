@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
 import "./Register.css";
 
 const Login = ({ setToken }) => {
@@ -33,7 +32,7 @@ const Login = ({ setToken }) => {
             });
 
             const userId = userResponse.data.id; // Assuming the user ID is in the response data
-            navigate(`/chat/${userId}`); // Redirect to the chat page with the user's ID
+            navigate(`/chat/${userId}`); // Corrected the template literal to use backticks
         } catch (error) {
             console.error("Login failed:", error);
             alert("Login failed!");

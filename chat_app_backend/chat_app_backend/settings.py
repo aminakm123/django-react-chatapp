@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -76,6 +77,28 @@ TEMPLATES = [
 ]
 
 # WSGI_APPLICATION = "chat_app_backend.wsgi.application"
+# Channels configuration
+ASGI_APPLICATION = 'chat_app_backend.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
+# CHANNEL_LAYERS = {
+#     'default': {        
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {            
+#             "hosts": [("127.0.0.1", 6379)],             
+#         },
+#     }}
+
+# CHANNELS_WS_PROTOCOLS = ["websocket"]
+
+# CORS configuration
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
 
 
 # Database
@@ -150,16 +173,3 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Channels configuration
-ASGI_APPLICATION = 'chat_app_backend.asgi.application'
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    },
-}
-# CHANNELS_WS_PROTOCOLS = ["websocket"]
-
-# CORS configuration
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-]

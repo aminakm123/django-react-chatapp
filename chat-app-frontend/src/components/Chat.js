@@ -4,18 +4,17 @@ import { useParams } from "react-router-dom";
 import "./Chat.css"; // Import the CSS file for chat styling
 
 const Chat = ({ token }) => {
-    const { userId } = useParams();
+    const { userId } = useParams(); // Get the logged-in user ID from the URL params
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(userId);
     const [ws, setWs] = useState(null);
 
-    // Fetch the list of users
+    // Fetch the list of users (you can keep this if you want to show other users in the chat interface)
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get("http://localhost:8000/api/v1/user/users/", {
+                const response = await axios.get("http://127.0.0.1:8000/api/v1/user/users/", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setUsers(response.data);
@@ -29,43 +28,61 @@ const Chat = ({ token }) => {
 
     // Handle WebSocket connection
     useEffect(() => {
-        if (selectedUser) {
-            const websocket = new WebSocket(`ws://localhost:8000/ws/chat/${selectedUser}/`);
-            setWs(websocket);
+        const websocket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${userId}/`);
+        
+        websocket.onopen = () => {
+            console.log("WebSocket connection established");
+        };
 
-            // Fetch messages for the selected user
-            const fetchMessages = async () => {
-                try {
-                    const response = await axios.get(`http://localhost:8000/api/v1/user/chat/messages/${selectedUser}/`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    setMessages(response.data);
-                } catch (error) {
-                    console.error("Failed to fetch messages:", error);
-                }
-            };
+        websocket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
 
-            fetchMessages();
+        websocket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            setMessages((prevMessages) => [...prevMessages, message]);
+        };
 
-            websocket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                setMessages((prevMessages) => [...prevMessages, message]);
-            };
+        websocket.onclose = () => {
+            console.log('WebSocket closed, attempting to reconnect...');
+            // Implement reconnection logic
+            setTimeout(() => {
+                const newWebSocket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${userId}/`);
+                setWs(newWebSocket);
+            }, 5000); // Retry after 5 seconds
+        };
+        
+        setWs(websocket);
 
-            // Close the WebSocket connection when the component unmounts or when the selected user changes
-            return () => {
-                if (websocket) {
-                    websocket.close();
-                }
-            };
-        }
-    }, [token, selectedUser]);
+        // Fetch messages for the logged-in user
+        const fetchMessages = async () => {
+            try {
+                const response = await axios.get(`http://127.0.0.1:8000/api/v1/user/chat/messages/${userId}/`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setMessages(response.data);
+            } catch (error) {
+                console.error("Failed to fetch messages:", error);
+            }
+        };
 
-    const handleSendMessage = () => {
+        fetchMessages();
+
+        // Close the WebSocket connection when the component unmounts
+        return () => {
+            if (websocket) {
+                websocket.close();
+            }
+        };
+    }, [token, userId]);
+
+    const handleSendMessage = (event) => {
+        event.preventDefault();
+
         if (newMessage.trim() !== "" && ws) {
             const messageData = {
-                content: newMessage,
-                recipient: selectedUser,
+                message: newMessage,
+                recipient_id: userId,
             };
 
             ws.send(JSON.stringify(messageData));
@@ -81,8 +98,7 @@ const Chat = ({ token }) => {
                     {users.map((user) => (
                         <li
                             key={user.id}
-                            onClick={() => setSelectedUser(user.id)}
-                            className={user.id === selectedUser ? "active" : ""}
+                            className={user.id === parseInt(userId) ? "active" : ""}
                         >
                             {user.username}
                         </li>
@@ -90,7 +106,7 @@ const Chat = ({ token }) => {
                 </ul>
             </div>
             <div className="chat-box">
-                <h2>Chat with {users.find((user) => user.id === selectedUser)?.username}</h2>
+                <h2>Chat with {users.find((user) => user.id === parseInt(userId))?.username}</h2>
                 <div className="messages">
                     {messages.map((message, index) => (
                         <div key={index} className={`message ${message.sender === userId ? "sent" : "received"}`}>
@@ -98,15 +114,16 @@ const Chat = ({ token }) => {
                         </div>
                     ))}
                 </div>
-                <div className="send-message">
+                <form className="send-message" onSubmit={handleSendMessage}>
                     <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
+                        name="message"
                     />
-                    <button onClick={handleSendMessage}>Send</button>
-                </div>
+                    <button type="submit">Send</button>
+                </form>
             </div>
         </div>
     );

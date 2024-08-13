@@ -1,0 +1,27 @@
+from django.urls import path
+from rest_framework.routers import DefaultRouter
+
+from . import views
+from .views import AcceptInterestView, ChatMessageListView, ChatWithUserView, InterestViewSet, ProfileView, RegisterView, RejectInterestView, UserListView, MyTokenObtainPairView
+from rest_framework_simplejwt.views import TokenRefreshView
+
+app_name = 'user_api'
+
+
+urlpatterns = [
+    path('', views.getRoutes),
+    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('register/', RegisterView.as_view(), name='register'),
+    path('users/', UserListView.as_view(), name='user-list'),
+
+    path('profile/', ProfileView.as_view(), name='profile'), 
+    path('profile/', ProfileView.as_view(), name='profile'),  
+    path('interests/', InterestViewSet.as_view({'post': 'create'}), name='interest_list'),
+
+    path('interests/<int:pk>/accept/', AcceptInterestView.as_view(), name='interest_accept'),
+    path('interests/<int:pk>/reject/', RejectInterestView.as_view(), name='interest_reject'),
+    path('chat/messages/', ChatMessageListView.as_view(), name='chat_message_list'),
+    path('users/', ChatWithUserView.as_view(), name='user-chat-list'),
+    path('chat/messages/<int:user_id>/', ChatWithUserView.as_view(), name='chat_with_user'),
+]
